@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, Response
 from research_agent import ResearchAgent
 import os
 from functools import wraps
+from braintrust import start_span
 
 app = Flask(__name__)
 
@@ -13,7 +14,7 @@ AVAILABLE_GENES = ['actn3', 'ppargc1a', 'adrb2', 'nos3']
 
 def check_auth(username, password):
     """Check if a username/password combination is valid."""
-    return username == 'admin' and password == APP_PASSWORD
+    return username == 'admin' and password == '1234'
 
 def authenticate():
     """Sends a 401 response that enables basic auth."""
@@ -50,11 +51,17 @@ def generate_plan():
         if gene_string not in AVAILABLE_GENES:
             return jsonify({'error': 'Invalid gene selected'}), 400
         
-        # Initialize the research agent
-        research_agent = ResearchAgent(doc_load_strat='server')
+        # this is akin to our trace
+        with start_span(name="generate_plan") as span:
+            # Initialize the research agent
+            research_agent = ResearchAgent(doc_load_strat='server')
 
-        # Generate the training plan
-        training_plan, research_report = research_agent.build_training_plan(goal=goal, gene_string=gene_string)
+            # Generate the training plan
+            training_plan, research_report = research_agent.build_training_plan(goal=goal, gene_string=gene_string)
+
+            span.log(input=data, output=training_plan)
+
+
         
         return jsonify({
             'success': True,

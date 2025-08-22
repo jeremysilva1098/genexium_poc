@@ -3,13 +3,16 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
+from braintrust import init_logger, traced, wrap_openai
 
+logger = init_logger(project="gen_poc")
 
 class ResearchAgent:
     def __init__(self, model="gpt-4.1", doc_load_strat='disk'):
         self.model = model
         self.doc_load_strat = doc_load_strat
-        self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        #self.openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.openai_client = wrap_openai(OpenAI(api_key=os.getenv("OPENAI_API_KEY")))
         self.hyrox_articles = [
             "https://roxlyfe.com/hyrox-training-plan-fundamentals/",
             "https://support.runna.com/en/articles/6781532-the-ultimate-functional-fitness-and-hyrox-running-training-guide",
@@ -76,7 +79,7 @@ class ResearchAgent:
             print(f"Error scraping {url}: {e}")
             return "EMPTY WEBPAGE FROM " + url
     
-
+    @traced
     def summarize_article(self, article, gene_string):
         with open("prompts/process_study.txt", "r") as file:
             prompt = file.read()
@@ -108,7 +111,7 @@ class ResearchAgent:
         print("\n\n")
         return response.output_text
 
-
+    @traced
     def build_research_report(self, gene_string):
         if self.doc_load_strat == 'disk':
             articles = self.load_research_articles_dir(gene_string=gene_string)
@@ -118,12 +121,19 @@ class ResearchAgent:
             raise ValueError(f"Invalid document load strategy: {self.doc_load_strat}")
         
         # Process articles in parallel using multiple threads
+        '''
         with ThreadPoolExecutor() as executor:
             # Map summarize_article to all articles and get futures
             summary_futures = executor.map(self.summarize_article, articles, [gene_string] * len(articles))
             
             # Combine all summaries
             summaries = "\n\n".join(summary_futures)
+        '''
+
+        summaries = []
+        for article in articles:
+            summaries.append(self.summarize_article(article, gene_string))
+        summaries = "\n\n".join(summaries)
             
         #with open(f"{self.gene_string}_report.md", "w") as file:
         #    file.write(summaries)
@@ -137,7 +147,7 @@ class ResearchAgent:
             content += self.scrape_web_page(url) + "\n\n"
         return content
     
-
+    @traced
     def build_training_plan(self, goal, gene_string):
         # build research report
         research_report = self.build_research_report(gene_string=gene_string)
@@ -175,7 +185,7 @@ class ResearchAgent:
         #    file.write(response.output_text)
         return response.output_text, research_report
 
-
+    @traced
     def generate_daily_workout(self, training_plan, week_number, day_of_week, hrv=None, resting_heart_rate=None, hours_of_sleep=None):
         # fetch research articles
         research_articles = self.build_content_from_web(source=self.hrv_articles)
