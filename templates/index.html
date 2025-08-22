@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeneXium - Personalized Training Plans</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <header class="text-center py-4 bg-primary text-white">
+            <h1><i class="fas fa-dna me-2"></i>GeneXium</h1>
+            <p class="lead">AI-Powered Personalized Training Plans Based on Your Genetics</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="row mt-4">
+            <!-- Input Form -->
+            <div class="col-lg-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Generate Your Plan</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="trainingPlanForm">
+                            <div class="mb-3">
+                                <label for="geneSelect" class="form-label">Select Your Gene:</label>
+                                <select class="form-select" id="geneSelect" required>
+                                    <option value="">Choose a gene...</option>
+                                    {% for gene in genes %}
+                                    <option value="{{ gene }}">{{ gene.upper() }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">
+                                    <small>Select the gene you want to analyze for your training plan.</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="goalInput" class="form-label">Your Fitness Goal:</label>
+                                <textarea class="form-control" id="goalInput" rows="4" placeholder="Describe your fitness goal, timeline, and any specific requirements..." required></textarea>
+                                <div class="form-text">
+                                    <small>Be specific about your goals, timeline, and current fitness level.</small>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100" id="generateBtn">
+                                <i class="fas fa-magic me-2"></i>Generate Training Plan
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Daily Workout Form -->
+                <div class="card shadow mt-4" id="dailyWorkoutCard" style="display: none;">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-calendar-day me-2"></i>Generate Daily Workout</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="dailyWorkoutForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="weekNumber" class="form-label">Week Number:</label>
+                                        <select class="form-select" id="weekNumber" required>
+                                            <option value="">Select week...</option>
+                                            <option value="1">Week 1</option>
+                                            <option value="2">Week 2</option>
+                                            <option value="3">Week 3</option>
+                                            <option value="4">Week 4</option>
+                                            <option value="5">Week 5</option>
+                                            <option value="6">Week 6</option>
+                                            <option value="7">Week 7</option>
+                                            <option value="8">Week 8</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="dayOfWeek" class="form-label">Day of Week:</label>
+                                        <select class="form-select" id="dayOfWeek" required>
+                                            <option value="">Select day...</option>
+                                            <option value="Monday">Monday</option>
+                                            <option value="Tuesday">Tuesday</option>
+                                            <option value="Wednesday">Wednesday</option>
+                                            <option value="Thursday">Thursday</option>
+                                            <option value="Friday">Friday</option>
+                                            <option value="Saturday">Saturday</option>
+                                            <option value="Sunday">Sunday</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Health Metrics Section -->
+                            <div class="card mt-3 mb-3">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0"><i class="fas fa-heartbeat me-2"></i>Daily Health Metrics (Optional)</h6>
+                                    <small class="text-muted">Provide these metrics for more personalized workout recommendations</small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="hrv" class="form-label">HRV (ms):</label>
+                                                <input type="number" class="form-control" id="hrv" placeholder="e.g., 45" min="20" max="200">
+                                                <div class="form-text">
+                                                    <small>Heart Rate Variability in milliseconds</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="restingHeartRate" class="form-label">Resting Heart Rate (bpm):</label>
+                                                <input type="number" class="form-control" id="restingHeartRate" placeholder="e.g., 65" min="40" max="120">
+                                                <div class="form-text">
+                                                    <small>Morning resting heart rate</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="hoursOfSleep" class="form-label">Hours of Sleep:</label>
+                                                <input type="number" class="form-control" id="hoursOfSleep" placeholder="e.g., 7.5" min="0" max="24" step="0.5">
+                                                <div class="form-text">
+                                                    <small>Hours slept last night</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-info w-100" id="generateWorkoutBtn">
+                                <i class="fas fa-dumbbell me-2"></i>Generate Daily Workout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Results -->
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Your Training Plan</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="loadingSection" class="text-center d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3">Generating your personalized training plan...</p>
+                            <p class="text-muted">This may take a few minutes as we review the research for your genetic make-up and create a comprehensive plan.</p>
+                        </div>
+
+                        <div id="errorSection" class="alert alert-danger d-none" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span id="errorMessage"></span>
+                        </div>
+
+                        <div id="resultsSection" class="d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6>Generated for: <span id="selectedGene" class="badge bg-primary"></span></h6>
+                                <button class="btn btn-outline-primary btn-sm" onclick="downloadPlan()">
+                                    <i class="fas fa-download me-1"></i>Download
+                                </button>
+                            </div>
+                            
+                            <!-- Tab Navigation -->
+                            <ul class="nav nav-tabs mb-3" id="resultsTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="training-tab" data-bs-toggle="tab" data-bs-target="#training-content" type="button" role="tab" aria-controls="training-content" aria-selected="true">
+                                        <i class="fas fa-dumbbell me-1"></i>Training Plan
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="research-tab" data-bs-toggle="tab" data-bs-target="#research-content" type="button" role="tab" aria-controls="research-content" aria-selected="false">
+                                        <i class="fas fa-microscope me-1"></i>Research Report
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="daily-workout-tab" data-bs-toggle="tab" data-bs-target="#daily-workout-content" type="button" role="tab" aria-controls="daily-workout-content" aria-selected="false">
+                                        <i class="fas fa-calendar-day me-1"></i>Daily Workout
+                                    </button>
+                                </li>
+                            </ul>
+                            
+                            <!-- Tab Content -->
+                            <div class="tab-content" id="resultsTabContent">
+                                <div class="tab-pane fade show active" id="training-content" role="tabpanel" aria-labelledby="training-tab">
+                                    <div id="trainingPlanContent" class="training-plan-content"></div>
+                                </div>
+                                <div class="tab-pane fade" id="research-content" role="tabpanel" aria-labelledby="research-tab">
+                                    <div id="researchReportContent" class="training-plan-content"></div>
+                                </div>
+                                <div class="tab-pane fade" id="daily-workout-content" role="tabpanel" aria-labelledby="daily-workout-tab">
+                                    <div id="dailyWorkoutContent" class="training-plan-content">
+                                        <div class="text-center text-muted">
+                                            <i class="fas fa-calendar-day fa-3x mb-3"></i>
+                                            <h5>Generate Your Daily Workout</h5>
+                                            <p>Use the form on the left to generate a specific daily workout for your training plan.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="emptyState" class="text-center text-muted">
+                            <i class="fas fa-clipboard fa-3x mb-3"></i>
+                            <h5>Ready to Get Started?</h5>
+                            <p>Select a gene and describe your fitness goal to generate your personalized training plan.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 
